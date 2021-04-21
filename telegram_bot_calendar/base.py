@@ -1,7 +1,7 @@
 import calendar
 import json
 import random
-from datetime import date
+from datetime import date, datetime
 
 from dateutil.relativedelta import relativedelta
 
@@ -21,10 +21,12 @@ CB_CALENDAR = "cbcal"
 YEAR = 'y'
 MONTH = 'm'
 DAY = 'd'
+HOUR = 'h' #Added hour
+MINUTE = 'mi' #Added minute
 SELECT = "s"
 GOTO = "g"
 NOTHING = "n"
-LSTEP = {'y': 'year', 'm': 'month', 'd': 'day'}
+LSTEP = {'y': 'year', 'm': 'month', 'd': 'day', 'h':'hour', 'mi': 'minute'}#Added hour and minute
 
 
 class TelegramCalendar:
@@ -32,6 +34,8 @@ class TelegramCalendar:
     days_of_week = DAYS_OF_WEEK
     prev_button = "<<"
     next_button = ">>"
+    middle_button_minute = " "#Added for minute
+    middle_button_hour = " "#Added for hour
     middle_button_day = "{month} {year}"
     middle_button_month = "{year}"
     middle_button_year = " "
@@ -83,11 +87,17 @@ class TelegramCalendar:
         self.next_button_month = self.next_button
         self.prev_button_day = self.prev_button
         self.next_button_day = self.next_button
+        self.prev_button_hour = self.prev_button#Added for hour
+        self.next_button_hour = self.next_button#Added for hour
+        self.prev_button_minute = self.prev_button#Added for minute
+        self.next_button_minute = self.next_button#Added for minute
 
         self.nav_buttons = {
             YEAR: [self.prev_button_year, self.middle_button_year, self.next_button_year],
             MONTH: [self.prev_button_month, self.middle_button_month, self.next_button_month],
             DAY: [self.prev_button_day, self.middle_button_day, self.next_button_day],
+            HOUR: [self.prev_button_hour, self.middle_button_hour, self.next_button_hour],#Added for hour
+            MINUTE: [self.prev_button_minute, self.middle_button_minute, self.next_button_minute],#Added for minute
         }
 
     @staticmethod
@@ -200,7 +210,7 @@ def max_date(d, step):
         return d
 
 
-def min_date(d, step):
+def min_date(d, step):C
     if step == YEAR:
         return d.replace(month=1, day=1)
     elif step == MONTH:
