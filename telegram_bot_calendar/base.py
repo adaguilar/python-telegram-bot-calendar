@@ -1,7 +1,7 @@
 import calendar
 import json
 import random
-from datetime import date, datetime
+from datetime import datetime
 
 from dateutil.relativedelta import relativedelta
 
@@ -12,7 +12,7 @@ try:
 except ImportError:
     TELETHON_INSTALLED = False
 
-from telegram_bot_calendar.static import MONTHS, DAYS_OF_WEEK
+from telegram_bot_calendar_AND.static import MONTHS, DAYS_OF_WEEK, HOURS_OF_DAY
 
 calendar.setfirstweekday(calendar.MONDAY)
 
@@ -32,15 +32,18 @@ LSTEP = {'y': 'year', 'm': 'month', 'd': 'day', 'h':'hour', 'mi': 'minute'}#Adde
 class TelegramCalendar:
     months = MONTHS
     days_of_week = DAYS_OF_WEEK
+    hours = HOURS_OF_DAY
     prev_button = "<<"
     next_button = ">>"
-    middle_button_minute = " "#Added for minute
-    middle_button_hour = " "#Added for hour
+    middle_button_minute = "{day} {month} {year} {hour}"#Added for minute
+    middle_button_hour = "{day} {month} {year}"#Added for hour
     middle_button_day = "{month} {year}"
     middle_button_month = "{year}"
     middle_button_year = " "
     back_to_button = "<<< {name}"
     empty_nav_button = "×"
+    empty_minute_button = " "
+    empty_hour_button = " "
     empty_day_button = " "
     empty_month_button = " "
     empty_year_button = " "
@@ -48,6 +51,8 @@ class TelegramCalendar:
     size_year_column = 2
     size_month = 3
     size_day = 7
+    size_hour = 24
+    size_minute = 4
     size_additional_buttons = 2
     _keyboard = None
     step = None
@@ -60,16 +65,16 @@ class TelegramCalendar:
         :param view: The type of the calendar: either detailed, w/month, or w/year
         """
 
-        if current_date is None: current_date = date.today()
-        if min_date is None: min_date = date(1, 1, 1)
-        if max_date is None: max_date = date(2999, 12, 31)
+        if current_date is None: current_date = datetime.today()
+        if min_date is None: min_date = datetime(1, 1, 1, 0, 0)
+        if max_date is None: max_date = datetime(2999, 12, 31, 0, 0)
 
         self.calendar_id = calendar_id
         self.current_date = current_date
         self.locale = locale
 
-        self.min_date = min_date
-        self.max_date = max_date
+        self.min_date = min_date#datetime(1, 1, 1, 0, 0)
+        self.max_date = max_date#datetime(2999, 12, 31, 0, 0)
 
         self.telethon = telethon
         if self.telethon and not TELETHON_INSTALLED:
@@ -131,7 +136,7 @@ class TelegramCalendar:
         if action == NOTHING:
             params = [CB_CALENDAR, str(self.calendar_id), action]
         else:
-            data = list(map(str, data.timetuple()[:3]))
+            data = list(map(str, data.timetuple()[:5]))
             params = [CB_CALENDAR, str(self.calendar_id), action, step] + data
 
         # Random is used here to protect bots from being spammed by some 'smart' users.
@@ -169,6 +174,7 @@ class TelegramCalendar:
         Used for getting period of dates with a given step, start date and difference.
         It allows to create empty dates if they are not in the given range.
         """
+               
         lstep = LSTEP[step] + "s"
         dates = []
 
@@ -210,7 +216,7 @@ def max_date(d, step):
         return d
 
 
-def min_date(d, step):C
+def min_date(d, step):
     if step == YEAR:
         return d.replace(month=1, day=1)
     elif step == MONTH:

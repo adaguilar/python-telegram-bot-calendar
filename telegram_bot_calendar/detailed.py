@@ -1,6 +1,6 @@
 from calendar import monthrange
 
-from telegram_bot_calendar.base import *
+from telegram_bot_calendar_AND.base import *
 
 STEPS = {YEAR: MONTH, MONTH: DAY, DAY:HOUR, HOUR:MINUTE}#Added day:hour and hour:minute
 
@@ -36,9 +36,13 @@ class DetailedTelegramCalendar(TelegramCalendar):
 
     def _process(self, call_data, *args, **kwargs):
         params = call_data.split("_")
+        print('params = call_data.split("_")')
+        print(params)
         params = dict(
             zip(["start", "calendar_id", "action", "step", "year", "month", "day", "hour", "minute"][:len(params)], params))#Added hour and minute
-
+        print('params = params = dict(zip([...')
+        print(params)
+        
         if params['action'] == NOTHING:
             return None, None, None
         step = params['step']
@@ -128,30 +132,23 @@ class DetailedTelegramCalendar(TelegramCalendar):
 
         self._keyboard = self._build_keyboard(days_of_week_buttons + days_buttons + nav_buttons)
 
-    def _build_hours(self, *args, **kwargs):#Added function for hours
-        
-        #hours_num = monthrange(self.current_date.year, self.current_date.month)[1]
-        hours_num = 24
+    def _build_hours(self, *args, **kwargs):
         start = self.current_date.replace(hour=0)
-        hours = self._get_period(HOUR, start, hours_num)
-
+        hours = self._get_period(HOUR, self.current_date.replace(hour=0), 24)
         hours_buttons = rows(
             [
-                self._build_button(d.hour if d else self.empty_hour_button, SELECT if d else NOTHING, HOUR, d,
-                                   is_random=self.is_random)
+                self._build_button(
+                    self.hours[self.locale][d.hour - 1] if d else self.empty_hour_button,  # button text
+                    SELECT if d else NOTHING,  # action
+                    HOUR, d, is_random=self.is_random  # other parameters
+                )
                 for d in hours
             ],
-            self.size_hour
-        )
+            self.size_hour)
 
-        hours_of_day_buttons = [[
-            self._build_button(self.hours_of_day[self.locale][i], NOTHING) for i in range(23)
-        ]]
-
-        
         nav_buttons = self._build_nav_buttons(HOUR, diff=relativedelta(hours=24),
-                                      mind=max_date(start, HOUR),
-                                      maxd=min_date(start.replace(hour=23), HOUR))
+                                              mind=max_date(start, HOUR),
+                                              maxd=min_date(start.replace(hour=23), HOUR))
 
         self._keyboard = self._build_keyboard(hours_buttons + nav_buttons)
         
@@ -186,7 +183,7 @@ class DetailedTelegramCalendar(TelegramCalendar):
 
         sld = list(map(str, self.current_date.timetuple()[:3]))
         data = [sld[0], self.months[self.locale][int(sld[1]) - 1], sld[2]]
-        data = dict(zip(["year", "month", "day"], data))
+        data = dict(zip(["year", "month", "day", "hour", "minute"], data))
         prev_page = self.current_date - diff
         next_page = self.current_date + diff
 
@@ -210,8 +207,8 @@ class DetailedTelegramCalendar(TelegramCalendar):
         cl = calendar.monthcalendar(start.year, start.month)
         for week in cl:
             for day in week:
-                if day != 0 and self._valid_date(date(start.year, start.month, day)):
-                    dates.append(date(start.year, start.month, day))
+                if day != 0 and self._valid_date(datetime(start.year, start.month, day)):
+                    dates.append(datetime(start.year, start.month, day))#date->datetime
                 else:
                     dates.append(None)
 
